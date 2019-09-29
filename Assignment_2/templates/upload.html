@@ -1,0 +1,90 @@
+<html>
+<body>
+
+<div id="demo">
+<h1>The XMLHttpRequest Object</h1>
+<button type="button" onclick="function()">upload</button>
+</div>
+
+<script>
+self.get_acts_on_category = function(){
+    	var xhttp = new XMLHttpRequest();
+    	xhttp.onreadystatechange = function(){
+    		if(this.readyState == 4 && this.status == 200){
+    			console.log(this.response);
+    			dict = this.response;
+    			const img = new Image();
+    			self.images([]);
+    			$.each(JSON.parse(dict),function(key,value){
+    				//alert(value.actId);
+    				self.images.push(new addImage({caption: value.caption, no_of_likes: value.upvotes, img: value.imgB64, actId : value.actId }))
+    			})
+
+    		}
+    		else if(this.readyState == 4){
+    			if(this.status == 204){
+    				alert("There are no images in the Selected Category");
+    			}
+    		}
+    	}
+    	if(self.category()==""){
+    		alert("Please select the category to list the acts");
+    		return;
+    	}
+    	else{
+    		xhttp.open("GET",url+'/api/v1/categories/'+self.category()+'/acts',true);
+    	}
+    	var dict;
+    	dict = self.category();
+    	xhttp.send(null);
+self.UploadFile = function(){
+		var xhttp = new XMLHttpRequest();
+		var orig = this;
+		if((self.insertToCategory()=="-----")||(self.insertToCategory()=="-----")){
+			alert("Please select the category");
+			return;
+		}
+		if(cntid==10000){
+			alert("Cannot add more images in the Chosen Category. Please consider Deleting some of the images in this category");
+			return;
+		}
+		/*
+		alert("id is "+ id);
+		alert("id1 is "+ id1);
+		alert("type of catid "+typeof(catid));
+		alert("catid "+catid);
+		alert("countActs "+countActs);
+		alert(typeof(countActs) + id);
+		*/
+		var reader = new FileReader();
+		var input = {};
+		//input["actId"] = id1;
+		//alert("data is "+(new Date()).getTime());
+		input["actId"] = (new Date()).getTime();
+		input["username"] = localStorage.getItem("username");
+		
+		//alert(self.uploadfile());
+		reader.readAsDataURL(document.getElementById("fileToUpload").files[0]);
+		xhttp.onreadystatechange = function(){
+			if(this.readyState == 4 && this.status == 201){
+				alert("New image has been uploaded");
+				//alert("this status is "+ this.status);
+			}
+		}
+		var caption = prompt("Enter the caption to enter");
+		input["caption"] = caption;
+		input["categoryName"] = self.insertToCategory();
+		input["timestamp"] = self.getDate();
+		reader.onload = function(){
+			input["imgB64"] = reader.result;
+			console.log("this is what i pass")
+			console.log(input);
+			xhttp.open("POST",url+'/api/v1/acts',true);
+			xhttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+			xhttp.send(JSON.stringify(input));
+		}
+	}
+</script>
+
+</body>
+</html>
